@@ -1,5 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import Navbar from '@/components/Navbar';
+import MenuBar from '@/components/MenuBar';
+import { menuItems } from '@/config/navigation';
+import Link from 'next/link';
 
 interface VehicleData {
   id: number;
@@ -10,7 +14,27 @@ interface VehicleData {
 
 export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Add click outside handler
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+
+    // Add event listener when dropdown is open
+    if (isProfileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen]);
+
   // Sample data
   const vehicles: VehicleData[] = [
     { id: 1, year: 2023, vehicleNo: "ABC 1234", status: "Active" },
@@ -18,66 +42,32 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
-      {/* Navbar */}
-      <nav className="bg-white shadow-lg">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex justify-between">
-            <div className="flex space-x-7">
-              <div>
-                <a href="main.html" className="flex items-center py-4 px-2">
-                  <i className="lni lni-code text-indigo-600 text-2xl mr-2"></i>
-                  <span className="font-semibold text-indigo-600 text-lg">UniSticker</span>
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <button 
-                  onClick={() => setIsProfileOpen(!isProfileOpen)} 
-                  className="flex items-center focus:outline-none"
-                >
-                  <i className="lni lni-user text-indigo-600 text-2xl"></i>
-                </button>
-                {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md overflow-hidden shadow-xl z-10">
-                    <a href="profile.html" className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">Profile</a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50">Sign out</a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Menu Bar */}
-      <div className="bg-indigo-100 shadow-md">
-        <div className="max-w-6xl mx-auto px-4">
-          <ul className="flex space-x-8">
-            <li>
-              <a href="main.html" className="flex items-center py-4 px-2 text-indigo-800 border-b-2 border-indigo-800">
-                <i className="lni lni-grid-alt mr-2"></i>
-                <span>Applications</span>
-              </a>
-            </li>
-            <li>
-              <a href="chatbot.html" className="flex items-center py-4 px-2 text-indigo-600 hover:text-indigo-800">
-                <i className="lni lni-comments mr-2"></i>
-                <span>ChatBot</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <MenuBar items={menuItems} />
+      
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 mt-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-indigo-800">Welcome to Your App</h1>
-          <a href="application.html" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105">
-            <i className="lni lni-plus mr-2"></i>New Application
-          </a>
+          <Link 
+            href="/application/new" 
+            className="bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-base py-2 px-4 rounded inline-flex items-center gap-3 shadow-sm transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New Application</span>
+          </Link>
         </div>
 
         {/* Table */}
@@ -108,9 +98,19 @@ export default function Home() {
                     </span>
                   </td>
                   <td className="px-8 py-5 whitespace-nowrap space-x-2">
-                    <a href="application-detail.html" className="text-indigo-600 hover:text-indigo-900 font-medium">View</a>
+                    <Link 
+                      href={`/application/${vehicle.id}`} 
+                      className="text-indigo-600 hover:text-indigo-900 font-medium"
+                    >
+                      View
+                    </Link>
                     <span className="text-gray-300">|</span>
-                    <a href="application-edit.html" className="text-indigo-600 hover:text-indigo-900 font-medium">Edit</a>
+                    <Link 
+                      href={`/application/${vehicle.id}/edit`} 
+                      className="text-indigo-600 hover:text-indigo-900 font-medium"
+                    >
+                      Edit
+                    </Link>
                   </td>
                 </tr>
               ))}
